@@ -1,0 +1,82 @@
+<html>
+<head>
+<title><%= title %></title>
+<script src="http://www.google.com/jsapi"></script>
+<script>
+  var CMDHistory = new function(){
+      this.history = [];
+      this.pos = 0;
+      
+      this.complete = function(){
+        var console = $('#console');
+        var val = $('#cmd').val();
+        if(val){ // ignore empty
+          if(this.history[0] != val)
+            this.history.unshift(val);
+          this.pos = 0;
+          console.append("<div class='input'>&gt;&gt;&gt;&nbsp;" + val + "</div>").scrollTop(console.innerHeight());
+          $('#cmd').val('');
+
+          $.get('eval', {'cmd':val}, function(data){
+            $.each(data.split('\n'), function(i, line){
+              console.append("<div class='output'>" + line + "</div>").scrollTop(console.innerHeight());
+            });
+          });
+        }
+
+      }
+      this.moveUp = function(){
+        if (this.pos < this.history.length){
+          $('#cmd').val(this.history[this.pos]);
+          this.pos += 1;
+        }
+      }
+      
+      this.moveDown = function(){
+        if(this.pos > 0){
+          this.pos -= 1;
+          $('#cmd').val(this.history[this.pos]);
+        }
+      }
+      
+  }
+  google.load('jquery', '1.2.6');
+  google.setOnLoadCallback(function() {
+    $('#cmd').keyup(function(e){
+      switch(e.keyCode){
+        case 13:
+          CMDHistory.complete();
+          break;
+        case 38:
+          CMDHistory.moveUp();
+          break;
+        case 40:
+          CMDHistory.moveDown();
+          break
+      }
+    });
+    
+$("#cmd").focus();
+
+});
+
+</script>
+</head>
+
+<body>
+
+<div id="console" style="overflow: auto; position: absolute; top: 0; bottom: 20px; left: 0; right: 0; border: 1px solid black">
+
+</div>
+
+
+<form id="cmdline" method="POST" style="width:100%;" onsubmit="return false;" autocomplet="off">
+
+    <div style="padding: 2px; border: 1px solid black; position: absolute; bottom: 0; left: 0; right: 0">
+&gt;&gt;&gt;<input id='cmd' name='cmd' style="border: none; left: 4em; right: 10; position: absolute" autocomplete="off"/>
+    </div>
+    
+</form>
+</body>
+
+</html>
